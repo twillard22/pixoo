@@ -77,7 +77,7 @@ export function Picture() {
         <View flex={1}>
           {image?.uri ? (
             <View flex={1}>
-              <View flex={1}>
+              <View flex={1} px={2}>
                 <Image flex={1} source={{ uri: image.uri }} alt={'image'} />
               </View>
               <View>
@@ -93,7 +93,7 @@ export function Picture() {
             </View>
           ) : (
             <View flex={1}>
-              <View flex={1}>
+              <View flex={1} px={2}>
                 <Camera ref={camera} type={type} style={{ flex: 1 }} />
               </View>
               <View>

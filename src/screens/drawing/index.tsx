@@ -12,13 +12,13 @@ import { ColorSwatch } from './components/colorSwatch';
 
 export function Drawing() {
   const ref = useCanvasRef();
-  const colors = ['#FFFFFF', '#FF0000', '#00FF00'];
+  const colors = ['#FFFFFF', '#FF0000', '#00FF00', '#0000FF', '#000000'];
 
   const canvasSize = 64;
   const cellSize = 1;
 
   const [pixels, setPixels] = useState<
-    { x: number; y: number; color: string }[][]
+    { x: number; y: number; color: string }[]
   >([]);
   const [currentColor, setCurrentColor] = useState(colors[0]);
 
@@ -26,36 +26,44 @@ export function Drawing() {
     return Math.round(Math.floor(value / cellSize));
   };
 
+  const filter = (pixels: { x: number; y: number; color: string }[]) => {
+    return pixels
+      .reverse()
+      .filter(
+        (v, i, a) => a.findIndex(v2 => v.x === v2.x && v.y === v2.y) === i,
+      );
+  };
+
   const touchStart = (event: GestureResponderEvent) => {
     const tempPixels = [...pixels];
-    tempPixels.push([
-      {
-        x: roundAndFloor(event.nativeEvent.locationX),
-        y: roundAndFloor(event.nativeEvent.locationY),
-        color: currentColor,
-      },
-    ]);
-    setPixels(tempPixels);
+    tempPixels.push({
+      x: roundAndFloor(event.nativeEvent.locationX),
+      y: roundAndFloor(event.nativeEvent.locationY),
+      color: currentColor,
+    });
+    setPixels(filter(tempPixels));
   };
 
   const touchMove = (event: GestureResponderEvent) => {
     const { locationX: x, locationY: y } = event.nativeEvent;
 
     const tempPixels = [...pixels];
-    tempPixels[tempPixels.length - 1].push({
+    tempPixels.push({
       x: roundAndFloor(x),
       y: roundAndFloor(y),
       color: currentColor,
     });
-    tempPixels[tempPixels.length - 1].filter(
-      (v, i, a) => a.findIndex(v2 => v.x === v2.x && v.y === v2.y) === i,
-    );
-
-    setPixels(tempPixels);
+    setPixels(filter(tempPixels));
   };
 
-  const touchEnd = () => {
-    const data = pixels[pixels.length - 1].map(map => {
+  const touchEnd = () => {};
+
+  const clearPixooScreen = () => {
+    clearPixoo();
+  };
+
+  const savePixoo = () => {
+    const data = pixels.map(map => {
       var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(map.color);
 
       return {
@@ -69,13 +77,17 @@ export function Drawing() {
     updatePixooPixels(data);
   };
 
-  const clearPixooScreen = () => {
-    clearPixoo();
+  const reset = () => {
     setPixels([]);
   };
 
   return (
     <View flex={1}>
+      <View>
+        <VStack space={2} p={2}>
+          <Button onPress={reset}>Reset</Button>
+        </VStack>
+      </View>
       <View height={20} justifyContent={'center'}>
         <Center>
           <HStack space={2}>
@@ -107,23 +119,22 @@ export function Drawing() {
               height: canvasSize,
               width: canvasSize,
             }}>
-            {pixels.map(pixel =>
-              pixel?.map((map, index) => (
-                <Rect
-                  key={index}
-                  x={map.x}
-                  y={map.y}
-                  width={cellSize}
-                  height={cellSize}
-                  color={map.color}
-                />
-              )),
-            )}
+            {pixels.map((pixel, index) => (
+              <Rect
+                key={index}
+                x={pixel.x}
+                y={pixel.y}
+                width={cellSize}
+                height={cellSize}
+                color={pixel.color}
+              />
+            ))}
           </Canvas>
         </View>
       </View>
       <VStack space={2} p={2}>
         <Button onPress={clearPixooScreen}>Clear</Button>
+        <Button onPress={savePixoo}>Save</Button>
       </VStack>
     </View>
   );
